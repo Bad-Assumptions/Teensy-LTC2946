@@ -34,8 +34,11 @@ Shutdown mode reduces power consumption to 15uA.
 #include <Arduino.h>
 #include <stdint.h>
 #include "LTC2946.h"
-#include <i2c_t3.h>
-//#include <Wire.h>
+#ifdef CORE_TEENSY
+  #include <i2c_t3.h>
+#else
+  #include <Wire.h>
+#endif
 
 LTC2946::LTC2946(uint8_t wire_num,uint8_t wire_addr) //!constructor
 {
@@ -47,12 +50,14 @@ void LTC2946::Setup()
 {
     if(I2C_WIRE == 0){
         Wire.begin();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.begin();
     }else if(I2C_WIRE == 2){
         Wire2.begin();
     }else if(I2C_WIRE == 3){
         Wire3.begin();
+#endif
     }
 }
 
@@ -116,7 +121,7 @@ float LTC2946::ReadVIN()
         LTC2946_mode = LTC2946_CHANNEL_CONFIG_SNAPSHOT | LTC2946_VDD;
         ack |= LTC2946_write(LTC2946_CTRLA_REG, LTC2946_mode);
 
-        uint8_t busy;
+        uint8_t busy = 0;
         do
         {
             ack |= LTC2946_read(LTC2946_STATUS2_REG, &busy);
@@ -265,7 +270,7 @@ Here is where I would add provisions for limits and colombs and joules, if I eve
 int8_t LTC2946::LTC2946_write(uint8_t adc_command, uint8_t code)
 // The function returns the state of the acknowledge bit after the I2C address write. 0=acknowledge, 1=no acknowledge.
 {
-    int8_t ack;
+    int8_t ack = 0;
 
 //  ack = i2c_write_byte_data(i2c_address, adc_command, code);
 
@@ -275,6 +280,7 @@ int8_t LTC2946::LTC2946_write(uint8_t adc_command, uint8_t code)
 
         Wire.write(code);
         ack = Wire.endTransmission(false);
+#ifdef 	CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -293,6 +299,7 @@ int8_t LTC2946::LTC2946_write(uint8_t adc_command, uint8_t code)
 
         Wire3.write(code);
         ack = Wire3.endTransmission(false);
+#endif
     }
 
     return ack;
@@ -303,7 +310,7 @@ int8_t LTC2946::LTC2946_write(uint8_t adc_command, uint8_t code)
 int8_t LTC2946::LTC2946_write_16_bits(uint8_t adc_command, uint16_t code)
 // The function returns the state of the acknowledge bit after the I2C address write. 0=acknowledge, 1=no acknowledge.
 {
-  int8_t ack;
+  int8_t ack = 0;
 
   union
   {
@@ -322,6 +329,7 @@ int8_t LTC2946::LTC2946_write_16_bits(uint8_t adc_command, uint16_t code)
         Wire.write(data.b[1]);
         Wire.write(data.b[0]);
         ack = Wire.endTransmission(false);
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -343,6 +351,7 @@ int8_t LTC2946::LTC2946_write_16_bits(uint8_t adc_command, uint16_t code)
         Wire3.write(data.b[1]);
         Wire3.write(data.b[0]);
         ack = Wire3.endTransmission(false);
+#endif
     }
 
   return(ack);
@@ -352,7 +361,7 @@ int8_t LTC2946::LTC2946_write_16_bits(uint8_t adc_command, uint16_t code)
 int8_t LTC2946::LTC2946_write_24_bits(uint8_t adc_command, uint32_t code)
 // The function returns the state of the acknowledge bit after the I2C address write. 0=acknowledge, 1=no acknowledge.
 {
-    int8_t ack;
+    int8_t ack = 0;
 
     union
     {
@@ -374,6 +383,7 @@ int8_t LTC2946::LTC2946_write_24_bits(uint8_t adc_command, uint32_t code)
         Wire.write(data.MY_byte[1]);
         Wire.write(data.MY_byte[0]);
         ack = Wire.endTransmission(false);
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -398,6 +408,7 @@ int8_t LTC2946::LTC2946_write_24_bits(uint8_t adc_command, uint32_t code)
         Wire3.write(data.MY_byte[1]);
         Wire3.write(data.MY_byte[0]);
         ack = Wire3.endTransmission(false);
+#endif
     }
 
     return(ack);
@@ -406,7 +417,7 @@ int8_t LTC2946::LTC2946_write_24_bits(uint8_t adc_command, uint32_t code)
 int8_t LTC2946::LTC2946_write_32_bits(uint8_t adc_command, uint32_t code)
 // The function returns the state of the acknowledge bit after the I2C address write. 0=acknowledge, 1=no acknowledge.
 {
-    int8_t ack;
+    int8_t ack = 0;
 
     union
     {
@@ -427,6 +438,7 @@ int8_t LTC2946::LTC2946_write_32_bits(uint8_t adc_command, uint32_t code)
         Wire.write(data.MY_byte[1]);
         Wire.write(data.MY_byte[0]);
         ack = Wire.endTransmission(false);
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -454,6 +466,7 @@ int8_t LTC2946::LTC2946_write_32_bits(uint8_t adc_command, uint32_t code)
         Wire3.write(data.MY_byte[1]);
         Wire3.write(data.MY_byte[0]);
         ack = Wire3.endTransmission(false);
+#endif
     }
 
     // ack = i2c_write_block_data(i2c_address, adc_command, (uint8_t) 4, data.LT_byte);
@@ -465,7 +478,7 @@ int8_t LTC2946::LTC2946_write_32_bits(uint8_t adc_command, uint32_t code)
 int8_t LTC2946::LTC2946_read(uint8_t adc_command, uint8_t *adc_code)
 // The function returns the state of the acknowledge bit after the I2C address write. 0=acknowledge, 1=no acknowledge.
 {
-    int8_t ack;
+    int8_t ack = 0;
 
     //  ack = i2c_read_byte_data(i2c_address, adc_command, adc_code);
 
@@ -478,6 +491,7 @@ int8_t LTC2946::LTC2946_read(uint8_t adc_command, uint8_t *adc_code)
         Wire.requestFrom(I2C_ADDRESS, (uint8_t)1);
 
         *adc_code = Wire.read();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -505,6 +519,7 @@ int8_t LTC2946::LTC2946_read(uint8_t adc_command, uint8_t *adc_code)
         Wire3.requestFrom(I2C_ADDRESS, (uint8_t)1);
 
         *adc_code = Wire3.read();
+#endif
     }
 
     return ack;
@@ -516,7 +531,7 @@ int8_t LTC2946::LTC2946_read_12_bits(uint8_t adc_command, uint16_t *adc_code)
 {
     // Use union type defined in Linduino.h to combine two uint8_t's (8-bit unsigned integers) into one uint16_t (unsigned 16-bit integer)
     // Then, shift by 4 bits and return in *adc_code
-    int8_t ack;
+    int8_t ack = 0;
 
     union
     {
@@ -537,6 +552,7 @@ int8_t LTC2946::LTC2946_read_12_bits(uint8_t adc_command, uint16_t *adc_code)
 
         data.b[1] = Wire.read();
         data.b[0] = Wire.read();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -567,6 +583,7 @@ int8_t LTC2946::LTC2946_read_12_bits(uint8_t adc_command, uint16_t *adc_code)
 
         data.b[1] = Wire3.read();
         data.b[0] = Wire3.read();
+#endif
     }
 
     //Serial.print(data.b[1],BIN); Serial.print(" | "); Serial.print(data.b[0],BIN); Serial.print(" | "); Serial.print(data.w,BIN); Serial.print(" | ");
@@ -601,6 +618,7 @@ int8_t LTC2946::LTC2946_read_16_bits(uint8_t adc_command, uint16_t *adc_code)
 
         data.b[1] = Wire.read();
         data.b[0] = Wire.read();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -631,6 +649,7 @@ int8_t LTC2946::LTC2946_read_16_bits(uint8_t adc_command, uint16_t *adc_code)
 
         data.b[1] = Wire3.read();
         data.b[0] = Wire3.read();
+#endif
     }
 
     *adc_code = data.w;
@@ -664,6 +683,7 @@ int8_t LTC2946::LTC2946_read_24_bits(uint8_t adc_command, uint32_t *adc_code)
         data.MY_byte[2] = Wire.read();
         data.MY_byte[1] = Wire.read();
         data.MY_byte[0] = Wire.read();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -697,6 +717,7 @@ int8_t LTC2946::LTC2946_read_24_bits(uint8_t adc_command, uint32_t *adc_code)
         data.MY_byte[2] = Wire3.read();
         data.MY_byte[1] = Wire3.read();
         data.MY_byte[0] = Wire3.read();
+#endif
     }
 
     *adc_code = 0x0FFFFFF & data.MY_int32;
@@ -730,6 +751,7 @@ int8_t LTC2946::LTC2946_read_32_bits(uint8_t adc_command, uint32_t *adc_code)
         data.MY_byte[2] = Wire.read();
         data.MY_byte[1] = Wire.read();
         data.MY_byte[0] = Wire.read();
+#ifdef CORE_TEENSY
     }else if(I2C_WIRE == 1){
         Wire1.beginTransmission(I2C_ADDRESS);
         Wire1.write(adc_command);
@@ -766,6 +788,7 @@ int8_t LTC2946::LTC2946_read_32_bits(uint8_t adc_command, uint32_t *adc_code)
         data.MY_byte[2] = Wire3.read();
         data.MY_byte[1] = Wire3.read();
         data.MY_byte[0] = Wire3.read();
+#endif
     }
 
 
